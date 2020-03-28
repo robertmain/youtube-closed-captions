@@ -49,7 +49,7 @@ describe('Caption Client', () => {
         });
     });
     describe('caption formatting', () => {
-        describe('date', () => {
+        describe('timestamp', (): void => {
             it('is on the first line', async (): Promise<void> => {
                 const timestamp = new Date();
                 await client.send('hello world', timestamp);
@@ -93,6 +93,28 @@ describe('Caption Client', () => {
                 expect(date).toMatch(/^[0-9]{4}\-[0-9]{2}-[0-9]{2}$/);
                 expect(time).toMatch(/^[0-9]{2}\:[0-9]{2}\.[0-9]{2}.[0-9]{3}\Z$/);
             });
-        })
+        });
+        describe('text', (): void => {
+            it('it is on the second line beneath the timestamp', async (): Promise<void> => {
+                await client.send('hello world');
+
+                const [[, caption]] = mockAxios.post.mock.calls;
+
+                const [, captionText] = caption.split(EOL);
+
+                expect(captionText).toBeTruthy();
+                expect(captionText).toBe('hello world');
+            });
+            it('can include line breaks', async (): Promise<void> => {
+                await client.send('hello<br />world<br>');
+
+                const [[, caption]] = mockAxios.post.mock.calls;
+
+                const [, captionText] = caption.split(EOL);
+
+                expect(captionText).toContain('<br />');
+                expect(captionText).toContain('<br>');
+            });
+        });
     });
 });
