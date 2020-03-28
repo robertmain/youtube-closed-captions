@@ -5,6 +5,7 @@ describe('Caption Client', () => {
     let client: Client;
 
     beforeEach(() => {
+        mockAxios.create.mockImplementation(() => mockAxios)
         client = new Client('youtube.com/my-page');
     });
 
@@ -12,7 +13,7 @@ describe('Caption Client', () => {
         mockAxios.reset();
     })
 
-    describe('send', (): void => {
+    describe('caption transport', (): void => {
         it('connects to the URL provided in the constructor', async (): Promise<void> => {
             mockAxios.post.mockResolvedValue({});
 
@@ -24,7 +25,7 @@ describe('Caption Client', () => {
                 expect.anything()
             );
         });
-        it('sends caption text to the API', async (): Promise<void> => {
+        it('sends caption text', async (): Promise<void> => {
             mockAxios.post.mockResolvedValue({});
 
             await client.send('Hello world');
@@ -35,12 +36,26 @@ describe('Caption Client', () => {
                 expect.stringMatching(/Hello world/)
             );
         });
-        it('calculates the current timestamp and includes it with captions', async (): Promise<void> => {
+        it('uses the current timetamp if not supplied', async (): Promise<void> => {
             const fakeDateString = new Date().toISOString();
             jest.spyOn(global.Date.prototype, 'toISOString')
                 .mockImplementation(() => fakeDateString);
 
             await client.send('Hello world');
+
+            expect(mockAxios.post).toHaveBeenCalled();
+            expect(mockAxios.post).toHaveBeenCalledWith(
+                expect.anything(),
+                expect.stringMatching(fakeDateString)
+            );
+        });
+        it('uses the provided timestamp if one is supplied', async () => {
+            const fakeDate = new Date();
+            const fakeDateString = fakeDate.toISOString();
+            jest.spyOn(global.Date.prototype, 'toISOString')
+                .mockImplementation(() => fakeDateString);
+
+            await client.send('Hello world', fakeDate);
 
             expect(mockAxios.post).toHaveBeenCalled();
             expect(mockAxios.post).toHaveBeenCalledWith(
