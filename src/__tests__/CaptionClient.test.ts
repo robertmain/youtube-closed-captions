@@ -35,5 +35,18 @@ describe('Caption Client', () => {
                 expect.stringMatching(/Hello world/)
             );
         });
+        it('calculates the current timestamp and includes it with captions', async (): Promise<void> => {
+            const fakeDateString = new Date().toISOString();
+            jest.spyOn(global.Date.prototype, 'toISOString')
+                .mockImplementation(() => fakeDateString);
+
+            await client.send('Hello world');
+
+            expect(mockAxios.post).toHaveBeenCalled();
+            expect(mockAxios.post).toHaveBeenCalledWith(
+                expect.anything(),
+                expect.stringMatching(fakeDateString)
+            );
+        });
     });
 });

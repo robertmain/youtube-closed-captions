@@ -10,7 +10,8 @@ export class Client {
         });
     }
 
-    public async send(caption: string): Promise<void> {
-        await this.captionAPI.post(this.url, caption);
+    public async send(caption: string, date: Date = new Date()): Promise<void> {
+        const timestamp = date.toISOString();
+        await this.captionAPI.post(this.url, caption + ' ' + timestamp);
     }
 }
