@@ -2,6 +2,8 @@ import axios, { AxiosInstance } from 'axios';
 import { EOL } from 'os';
 import { format } from 'date-fns';
 
+export const DATE_FORMAT = 'yyyy-MM-dd\'T\'HH:mm.ss.SSS\'Z\'';
+
 export class Client {
     private url: string;
     private captionAPI: AxiosInstance;

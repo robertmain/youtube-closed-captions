@@ -1,8 +1,7 @@
-import { Client } from '../YouTubeCaptionClient';
+import { Client, DATE_FORMAT } from '../YouTubeCaptionClient';
 import mockAxios from 'jest-mock-axios';
 import { EOL } from 'os';
-import { format, isValid, parseISO } from 'date-fns';
-import { parseFromTimeZone } from 'date-fns-timezone';
+import { format, isValid, parseISO, formatISO } from 'date-fns';
 
 describe('Caption Client', () => {
     let client: Client;
@@ -39,33 +38,6 @@ describe('Caption Client', () => {
                 expect.stringMatching(/Hello world/)
             );
         });
-        it('uses the current timetamp if not supplied', async (): Promise<void> => {
-            const fakeDateString = new Date().toISOString();
-            jest.spyOn(global.Date.prototype, 'toISOString')
-                .mockImplementation(() => fakeDateString);
-
-            await client.send('Hello world');
-
-            expect(mockAxios.post).toHaveBeenCalled();
-            expect(mockAxios.post).toHaveBeenCalledWith(
-                expect.anything(),
-                expect.stringMatching(fakeDateString)
-            );
-        });
-        it('uses the provided timestamp if one is supplied', async () => {
-            const fakeDate = new Date();
-            const fakeDateString = fakeDate.toISOString();
-            jest.spyOn(global.Date.prototype, 'toISOString')
-                .mockImplementation(() => fakeDateString);
-
-            await client.send('Hello world', fakeDate);
-
-            expect(mockAxios.post).toHaveBeenCalled();
-            expect(mockAxios.post).toHaveBeenCalledWith(
-                expect.anything(),
-                expect.stringMatching(fakeDateString)
-            );
-        });
         it('encodes the request as text/plain', async () => {
             expect(mockAxios.create).toHaveBeenLastCalledWith(
                 expect.objectContaining({
@@ -88,6 +60,26 @@ describe('Caption Client', () => {
 
                 expect(date).toBeTruthy();
                 expect(isValid(parseISO(date))).toBe(true);
+            });
+            it('generates a timetamp if not supplied', async (): Promise<void> => {
+                await client.send('Hello world');
+
+                expect(mockAxios.post).toHaveBeenCalled();
+                expect(mockAxios.post).toHaveBeenCalledWith(
+                    expect.anything(),
+                    expect.stringContaining(format(new Date(), 'yyyy-MM-dd'))
+                );
+            });
+            it('uses the provided timestamp if one is supplied', async () => {
+                const fakeDate = new Date();
+
+                await client.send('Hello world', fakeDate);
+
+                expect(mockAxios.post).toHaveBeenCalled();
+                expect(mockAxios.post).toHaveBeenCalledWith(
+                    expect.anything(),
+                    expect.stringMatching(format(fakeDate, DATE_FORMAT))
+                );
             });
             it('is in yyyy-MM-ddTHH:mm.ss.SSSZ format', async (): Promise<void> => {
                 const dateObject = new Date();
