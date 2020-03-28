@@ -7,6 +7,9 @@ export class Client {
     public constructor(url: string) {
         this.url = url
         this.captionAPI = axios.create({
+            headers: {
+                'encoding': 'text/plain',
+            },
         });
     }
 

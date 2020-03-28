@@ -63,5 +63,14 @@ describe('Caption Client', () => {
                 expect.stringMatching(fakeDateString)
             );
         });
+        it('encodes the request as text/plain', async () => {
+            expect(mockAxios.create).toHaveBeenLastCalledWith(
+                expect.objectContaining({
+                    headers: {
+                        encoding: 'text/plain',
+                    },
+                })
+            );
+        });
     });
 });
