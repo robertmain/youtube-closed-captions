@@ -1,6 +1,8 @@
 import { Client } from '../YouTubeCaptionClient';
 import mockAxios from 'jest-mock-axios';
 import { EOL } from 'os';
+import { format, isValid, parseISO } from 'date-fns';
+import { parseFromTimeZone } from 'date-fns-timezone';
 
 describe('Caption Client', () => {
     let client: Client;
@@ -85,7 +87,19 @@ describe('Caption Client', () => {
                 const [date] = captionText.split(EOL);
 
                 expect(date).toBeTruthy();
-                expect(date).toBe(timestamp.toISOString());
+                expect(isValid(parseISO(date))).toBe(true);
+            });
+            it('is in yyyy-MM-ddTHH:mm.ss.SSSZ format', async (): Promise<void> => {
+                const dateObject = new Date();
+                await client.send('hello world', dateObject);
+
+                const [[, captionText]] = mockAxios.post.mock.calls;
+
+                const [timestamp] = captionText.split(EOL);
+                const [date, time] = timestamp.split('T');
+
+                expect(date).toMatch(/^[0-9]{4}\-[0-9]{2}-[0-9]{2}$/);
+                expect(time).toMatch(/^[0-9]{2}\:[0-9]{2}\.[0-9]{2}.[0-9]{3}\Z$/);
             });
         })
     });

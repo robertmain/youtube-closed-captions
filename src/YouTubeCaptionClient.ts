@@ -1,5 +1,6 @@
 import axios, { AxiosInstance } from 'axios';
 import { EOL } from 'os';
+import { format } from 'date-fns';
 
 export class Client {
     private url: string;
@@ -15,7 +16,7 @@ export class Client {
     }
 
     public async send(caption: string, date: Date = new Date()): Promise<void> {
-        const timestamp = date.toISOString();
+        const timestamp = format(date, 'yyyy-MM-dd\'T\'HH:mm.ss.SSS\'Z\'');
         await this.captionAPI.post(
             this.url,
             timestamp + EOL
