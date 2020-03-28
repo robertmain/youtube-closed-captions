@@ -1,4 +1,5 @@
 import axios, { AxiosInstance } from 'axios';
+import { EOL } from 'os';
 
 export class Client {
     private url: string;
@@ -15,6 +16,10 @@ export class Client {
 
     public async send(caption: string, date: Date = new Date()): Promise<void> {
         const timestamp = date.toISOString();
-        await this.captionAPI.post(this.url, caption + ' ' + timestamp);
+        await this.captionAPI.post(
+            this.url,
+            timestamp + EOL
+            + caption
+        );
     }
 }

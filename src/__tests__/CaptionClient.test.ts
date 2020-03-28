@@ -1,5 +1,6 @@
 import { Client } from '../YouTubeCaptionClient';
 import mockAxios from 'jest-mock-axios';
+import { EOL } from 'os';
 
 describe('Caption Client', () => {
     let client: Client;
@@ -72,5 +73,20 @@ describe('Caption Client', () => {
                 })
             );
         });
+    });
+    describe('caption formatting', () => {
+        describe('date', () => {
+            it('is on the first line', async (): Promise<void> => {
+                const timestamp = new Date();
+                await client.send('hello world', timestamp);
+
+                const [[, captionText]] = mockAxios.post.mock.calls;
+
+                const [date] = captionText.split(EOL);
+
+                expect(date).toBeTruthy();
+                expect(date).toBe(timestamp.toISOString());
+            });
+        })
     });
 });
