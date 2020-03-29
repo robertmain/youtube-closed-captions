@@ -12,6 +12,7 @@ export class Client {
     public constructor(url: string) {
         this.url = url;
         this.captionAPI = axios.create({
+            validateStatus: (status) => status < 400,
             headers: {
                 'encoding': 'text/plain',
             },
@@ -35,12 +36,16 @@ export class Client {
      * @param sequence A number used for ordering captions. Note that once
      */
     private async makeRequest(postBody: string = ''): Promise<AxiosResponse> {
-        const response = this.captionAPI.post(this.url, postBody, {
-            params: {
-                seq: this.seqCounter,
-            },
-        });
-        this.seqCounter += 1;
-        return response;
+        try {
+            const response = await this.captionAPI.post(this.url, postBody, {
+                params: {
+                    seq: this.seqCounter,
+                },
+            });
+            this.seqCounter += 1;
+            return response;
+        } catch (e) {
+            this.makeRequest(postBody);
+        }
     }
 }

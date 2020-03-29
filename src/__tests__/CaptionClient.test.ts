@@ -2,6 +2,8 @@ import { Client, DATE_FORMAT } from '../YouTubeCaptionClient';
 import mockAxios from 'jest-mock-axios';
 import { EOL } from 'os';
 import { format, isValid, parseISO } from 'date-fns';
+import { AxiosError } from 'axios';
+import { REQUEST_TIMEOUT } from 'http-status-codes';
 
 describe('Caption Client', () => {
     let client: Client;
@@ -91,6 +93,33 @@ describe('Caption Client', () => {
                         encoding: 'text/plain',
                     },
                 })
+            );
+        });
+        it('retries requests that time out', async (): Promise<void> => {
+            mockAxios.post.mockRejectedValueOnce({
+                code: 'ECONNABORTED',
+                isAxiosError: true,
+            } as AxiosError);
+
+            await client.send('testing testing 1234');
+            expect(mockAxios.post).toBeCalledTimes(2);
+            expect(mockAxios.post).toHaveBeenNthCalledWith(1,
+                expect.anything(),
+                expect.anything(),
+                expect.objectContaining({
+                    params: {
+                        seq: 0,
+                    },
+                }),
+            );
+            expect(mockAxios.post).toHaveBeenNthCalledWith(2,
+                expect.anything(),
+                expect.anything(),
+                expect.objectContaining({
+                    params: {
+                        seq: 0,
+                    },
+                }),
             );
         });
     });

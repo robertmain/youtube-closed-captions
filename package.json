@@ -15,6 +15,7 @@
     "axios": "^0.19.2",
     "date-fns": "^2.11.1",
     "date-fns-timezone": "^0.1.4",
+    "http-status-codes": "^1.4.0",
     "ts-node": "^8.6.2",
     "typescript": "^3.8.3"
   },
