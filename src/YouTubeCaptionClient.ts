@@ -7,6 +7,7 @@ export const DATE_FORMAT = 'yyyy-MM-dd\'T\'HH:mm.ss.SSS\'Z\'';
 export class Client {
     private url: string;
     private captionAPI: AxiosInstance;
+    private seqCounter: number = 0;
 
     public constructor(url: string) {
         this.url = url;
@@ -31,8 +32,15 @@ export class Client {
     /**
      * Make request to caption API
      * @param postBody Any data to include in the POST body to the caption API.
+     * @param sequence A number used for ordering captions. Note that once
      */
     private async makeRequest(postBody: string = ''): Promise<AxiosResponse> {
-        return this.captionAPI.post(this.url, postBody);
+        const response = this.captionAPI.post(this.url, postBody, {
+            params: {
+                seq: this.seqCounter,
+            },
+        });
+        this.seqCounter += 1;
+        return response;
     }
 }

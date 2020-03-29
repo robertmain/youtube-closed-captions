@@ -15,6 +15,50 @@ describe('Caption Client', () => {
         mockAxios.reset();
     })
 
+    describe('caption sequencing', (): void => {
+        it('adds caption counter to every caption', async (): Promise<void> => {
+            mockAxios.post.mockResolvedValue({});
+
+            await client.send('hello world');
+
+            expect(mockAxios.post).toHaveBeenCalled();
+            expect(mockAxios.post).toHaveBeenCalledWith(
+                expect.anything(),
+                expect.anything(),
+                expect.objectContaining({
+                    params: {
+                        seq: 0,
+                    },
+                }),
+            );
+        });
+        it('increments the caption sequence counter for every caption', async (): Promise<void> => {
+            mockAxios.post.mockResolvedValue({});
+
+            await client.send('hello world');
+            await client.send('testing 123');
+
+            expect(mockAxios.post).toHaveBeenCalledTimes(2);
+            expect(mockAxios.post).toHaveBeenNthCalledWith(1,
+                expect.anything(),
+                expect.anything(),
+                expect.objectContaining({
+                    params: {
+                        seq: 0,
+                    },
+                }),
+            );
+            expect(mockAxios.post).toHaveBeenNthCalledWith(2,
+                expect.anything(),
+                expect.anything(),
+                expect.objectContaining({
+                    params: {
+                        seq: 1,
+                    },
+                }),
+            );
+        });
+    });
     describe('caption transport', (): void => {
         it('connects to the URL provided in the constructor', async (): Promise<void> => {
             mockAxios.post.mockResolvedValue({});
@@ -24,6 +68,7 @@ describe('Caption Client', () => {
             expect(mockAxios.post).toHaveBeenCalled();
             expect(mockAxios.post).toHaveBeenCalledWith(
                 expect.stringMatching(/youtube.com\/my-page/),
+                expect.anything(),
                 expect.anything()
             );
         });
@@ -35,10 +80,11 @@ describe('Caption Client', () => {
             expect(mockAxios.post).toHaveBeenCalled();
             expect(mockAxios.post).toHaveBeenCalledWith(
                 expect.anything(),
-                expect.stringMatching(/Hello world/)
+                expect.stringMatching(/Hello world/),
+                expect.anything()
             );
         });
-        it('encodes the request as text/plain', async () => {
+        it('encodes the request as text/plain', async () : Promise<void> => {
             expect(mockAxios.create).toHaveBeenLastCalledWith(
                 expect.objectContaining({
                     headers: {
@@ -48,7 +94,7 @@ describe('Caption Client', () => {
             );
         });
     });
-    describe('caption formatting', () => {
+    describe('caption formatting', (): void => {
         describe('timestamp', (): void => {
             it('is on the first line', async (): Promise<void> => {
                 const timestamp = new Date();
@@ -67,7 +113,8 @@ describe('Caption Client', () => {
                 expect(mockAxios.post).toHaveBeenCalled();
                 expect(mockAxios.post).toHaveBeenCalledWith(
                     expect.anything(),
-                    expect.stringContaining(format(new Date(), 'yyyy-MM-dd'))
+                    expect.stringContaining(format(new Date(), 'yyyy-MM-dd')),
+                    expect.anything()
                 );
             });
             it('uses the provided timestamp if one is supplied', async () => {
@@ -78,7 +125,8 @@ describe('Caption Client', () => {
                 expect(mockAxios.post).toHaveBeenCalled();
                 expect(mockAxios.post).toHaveBeenCalledWith(
                     expect.anything(),
-                    expect.stringMatching(format(fakeDate, DATE_FORMAT))
+                    expect.stringMatching(format(fakeDate, DATE_FORMAT)),
+                    expect.anything()
                 );
             });
             it('is in yyyy-MM-ddTHH:mm.ss.SSSZ format', async (): Promise<void> => {
