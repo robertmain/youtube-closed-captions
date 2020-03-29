@@ -1,7 +1,7 @@
 import { Client, DATE_FORMAT } from '../YouTubeCaptionClient';
 import mockAxios from 'jest-mock-axios';
 import { EOL } from 'os';
-import { format, isValid, parseISO, formatISO } from 'date-fns';
+import { format, isValid, parseISO } from 'date-fns';
 
 describe('Caption Client', () => {
     let client: Client;

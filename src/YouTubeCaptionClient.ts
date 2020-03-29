@@ -1,4 +1,4 @@
-import axios, { AxiosInstance } from 'axios';
+import axios, { AxiosInstance, AxiosResponse } from 'axios';
 import { EOL } from 'os';
 import { format } from 'date-fns';
 
@@ -9,7 +9,7 @@ export class Client {
     private captionAPI: AxiosInstance;
 
     public constructor(url: string) {
-        this.url = url
+        this.url = url;
         this.captionAPI = axios.create({
             headers: {
                 'encoding': 'text/plain',
@@ -17,12 +17,22 @@ export class Client {
         });
     }
 
+    /**
+     * Send caption text to the YouTube caption API
+     *
+     * @param caption Caption text
+     * @param date The timestamp to link the caption text to
+     */
     public async send(caption: string, date: Date = new Date()): Promise<void> {
         const timestamp = format(date, 'yyyy-MM-dd\'T\'HH:mm.ss.SSS\'Z\'');
-        await this.captionAPI.post(
-            this.url,
-            timestamp + EOL
-            + caption
-        );
+        await this.makeRequest(timestamp + EOL + caption);
+    }
+
+    /**
+     * Make request to caption API
+     * @param postBody Any data to include in the POST body to the caption API.
+     */
+    private async makeRequest(postBody: string = ''): Promise<AxiosResponse> {
+        return this.captionAPI.post(this.url, postBody);
     }
 }
