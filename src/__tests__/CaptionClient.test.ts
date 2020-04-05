@@ -1,9 +1,11 @@
 import { Client, DATE_FORMAT } from '../YouTubeCaptionClient';
 import mockAxios from 'jest-mock-axios';
 import { EOL } from 'os';
-import { format, isValid, parseISO } from 'date-fns';
+import { format, isValid, parseISO, parse, differenceInSeconds, differenceInMinutes, addHours } from 'date-fns';
 import { AxiosError, AxiosResponse } from 'axios';
-import { REQUEST_TIMEOUT } from 'http-status-codes';
+
+const now = new Date();
+const youtubeTime = new Date(Date.UTC(2020, 4, 4, 22, 39, 55, 152));
 
 describe('Caption Client', () => {
     let client: Client;
@@ -35,7 +37,9 @@ describe('Caption Client', () => {
             );
         });
         it('increments the caption sequence counter for every caption', async (): Promise<void> => {
-            mockAxios.post.mockResolvedValue({});
+            mockAxios.post.mockResolvedValue({
+                data: format(youtubeTime, DATE_FORMAT),
+            } as AxiosResponse);
 
             await client.send('hello world');
             await client.send('testing 123');
@@ -59,6 +63,44 @@ describe('Caption Client', () => {
                     },
                 }),
             );
+        });
+        it('uses the server provided time to offset the caption clock', async (): Promise<void> => {
+            mockAxios.post.mockResolvedValue({
+                data: format(youtubeTime, DATE_FORMAT),
+            } as AxiosResponse);
+
+            const youTubeDifference = differenceInSeconds(youtubeTime, now);
+
+            await client.send('Hello world', now);
+            await client.send('More text', now);
+
+            const [, [, captionText]] = mockAxios.post.mock.calls;
+            const parsedRequestTime = parse(captionText.split(EOL)[0], DATE_FORMAT, now);
+            const requestDifference = differenceInSeconds(now, parsedRequestTime);
+
+            expect(youTubeDifference).toEqual(requestDifference);
+        });
+        it('only sets the server offset once', async (): Promise<void> => {
+            mockAxios.post.mockResolvedValueOnce({
+                data: format(youtubeTime, DATE_FORMAT),
+            } as AxiosResponse);
+            await client.send('Hello world', now);
+
+            mockAxios.post.mockResolvedValueOnce({
+                data: format(addHours(youtubeTime, 4), DATE_FORMAT),
+            } as AxiosResponse);
+            await client.send('More text', now);
+
+            mockAxios.post.mockResolvedValueOnce({
+                data: format(addHours(youtubeTime, 2), DATE_FORMAT),
+            } as AxiosResponse);
+            await client.send('Even more text', now);
+
+            const dates = mockAxios.post.mock.calls.slice(1)
+                .map(([, postBody]) => postBody.split(EOL)[0]);
+
+            expect(dates).toHaveLength(2);
+            expect(dates).toEqual(Array(2).fill(dates[0]));
         });
     });
     describe('caption transport', (): void => {

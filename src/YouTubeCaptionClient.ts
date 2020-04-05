@@ -1,6 +1,6 @@
 import axios, { AxiosInstance, AxiosResponse } from 'axios';
 import { EOL } from 'os';
-import { format } from 'date-fns';
+import { format, differenceInHours, differenceInMinutes, differenceInSeconds, addSeconds, parse } from 'date-fns';
 
 export const DATE_FORMAT = 'yyyy-MM-dd\'T\'HH:mm.ss.SSS\'Z\'';
 
@@ -8,6 +8,7 @@ export class Client {
     private url: string;
     private captionAPI: AxiosInstance;
     private seqCounter: number = 0;
+    private lastDate: Date;
 
     public constructor(url: string) {
         this.url = url;
@@ -26,7 +27,12 @@ export class Client {
      * @param date The timestamp to link the caption text to
      */
     public async send(caption: string, date: Date = new Date()): Promise<AxiosResponse> {
-        const timestamp = format(date, 'yyyy-MM-dd\'T\'HH:mm.ss.SSS\'Z\'');
+        let offsetDate = date;
+        if(this.lastDate) {
+            const dateDiff = differenceInSeconds(date, this.lastDate);
+            offsetDate = addSeconds(offsetDate, dateDiff);
+        }
+        const timestamp = format(offsetDate, 'yyyy-MM-dd\'T\'HH:mm.ss.SSS\'Z\'');
         return this.makeRequest(timestamp + EOL + caption);
     }
 
@@ -42,6 +48,9 @@ export class Client {
                     seq: this.seqCounter,
                 },
             });
+            if(!this.lastDate){
+                this.lastDate = parse(response.data, DATE_FORMAT, new Date());
+            }
             this.seqCounter += 1;
             return response;
         } catch (e) {
