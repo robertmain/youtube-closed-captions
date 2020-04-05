@@ -25,9 +25,9 @@ export class Client {
      * @param caption Caption text
      * @param date The timestamp to link the caption text to
      */
-    public async send(caption: string, date: Date = new Date()): Promise<void> {
+    public async send(caption: string, date: Date = new Date()): Promise<AxiosResponse> {
         const timestamp = format(date, 'yyyy-MM-dd\'T\'HH:mm.ss.SSS\'Z\'');
-        await this.makeRequest(timestamp + EOL + caption);
+        return this.makeRequest(timestamp + EOL + caption);
     }
 
     /**

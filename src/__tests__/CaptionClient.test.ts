@@ -2,7 +2,7 @@ import { Client, DATE_FORMAT } from '../YouTubeCaptionClient';
 import mockAxios from 'jest-mock-axios';
 import { EOL } from 'os';
 import { format, isValid, parseISO } from 'date-fns';
-import { AxiosError } from 'axios';
+import { AxiosError, AxiosResponse } from 'axios';
 import { REQUEST_TIMEOUT } from 'http-status-codes';
 
 describe('Caption Client', () => {
@@ -121,6 +121,15 @@ describe('Caption Client', () => {
                     },
                 }),
             );
+        });
+        it('returns the axios response from the server', async (): Promise<void> => {
+            mockAxios.post.mockResolvedValue({
+                data: {}
+            });
+
+            const response = await client.send('testing testing 1234');
+            expect(response).toBeTruthy();
+            expect(response).toHaveProperty('data');
         });
     });
     describe('caption formatting', (): void => {
