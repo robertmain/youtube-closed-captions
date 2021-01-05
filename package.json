@@ -12,7 +12,7 @@
   "description": "",
   "dependencies": {
     "@types/node": "^13.9.0",
-    "axios": "^0.19.2",
+    "axios": "^0.21.1",
     "date-fns": "^2.11.1",
     "date-fns-timezone": "^0.1.4",
     "http-status-codes": "^1.4.0",
